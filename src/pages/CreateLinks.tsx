@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import { toast } from "sonner";
-import { Copy, Check, Loader2, RotateCcw, Sparkles, Link2, Hash, MousePointerClick } from "lucide-react";
+import {
+  Copy,
+  Check,
+  Loader2,
+  RotateCcw,
+  Sparkles,
+  Link2,
+  Hash,
+  MousePointerClick,
+} from "lucide-react";
 import {
   LOCKEDE_DOMAIN,
   createLockedeLink,
   generateUniqueLinkSlug,
 } from "@/lib/linksApi";
+import { listTrackingIds, type TrackingId } from "@/lib/trackingIdsApi";
 
 function isValidUrl(url: string): boolean {
   try {
@@ -23,9 +33,27 @@ export default function CreateLinks() {
   const [buttonPosition, setButtonPosition] = useState(1);
   const [clickaduLink, setClickaduLink] = useState("");
   const [trackingId, setTrackingId] = useState("");
+  const [trackingIds, setTrackingIds] = useState<TrackingId[]>([]);
+  const [loadingTids, setLoadingTids] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState("");
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    listTrackingIds()
+      .then((rows) => {
+        if (cancelled) return;
+        setTrackingIds(rows);
+        if (rows.length && !trackingId) setTrackingId(rows[0].id);
+      })
+      .catch(() => !cancelled && setTrackingIds([]))
+      .finally(() => !cancelled && setLoadingTids(false));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,9 +64,9 @@ export default function CreateLinks() {
       return toast.error("Please enter a valid http(s) destination URL");
     if (!isValidUrl(clickadu))
       return toast.error("Please enter a valid Clickadu Direct Link");
-    if (!tid) return toast.error("Please enter a Tracking ID");
-    if (buttonPosition < 1 || buttonPosition > 5)
-      return toast.error("Choose a button position from 1 to 5");
+    if (!tid) return toast.error("Please select a Tracking ID");
+    if (buttonPosition < 1 || buttonPosition > 6)
+      return toast.error("Choose a button position from 1 to 6");
 
     setSubmitting(true);
     try {
@@ -73,7 +101,6 @@ export default function CreateLinks() {
     setDestinationUrl("");
     setButtonPosition(1);
     setClickaduLink("");
-    setTrackingId("");
     setCopied(false);
   }
 
@@ -83,15 +110,15 @@ export default function CreateLinks() {
         title="Create Links · Lockede"
         description="Generate a clean lockede.com short URL."
       />
-      <section className="container max-w-2xl py-12 sm:py-16">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+      <section className="container max-w-2xl pt-4 pb-12 sm:pt-6 sm:pb-16">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           Create a short link
         </h1>
 
         {!generated ? (
           <form
             onSubmit={onSubmit}
-            className="mt-10 space-y-8 rounded-lg border border-border bg-card p-6 sm:p-8"
+            className="mt-6 space-y-8 rounded-lg border border-border bg-card p-6 sm:p-8"
           >
             {/* Destination */}
             <div>
@@ -119,14 +146,10 @@ export default function CreateLinks() {
             {/* Button position */}
             <div>
               <label className="mb-2 block text-sm font-medium">
-                Destination button position
+                Select button position for destination link
               </label>
-              <p className="mb-3 text-xs text-muted-foreground">
-                Pick which of the five buttons on the bridge page will hold
-                your destination. The remaining four are Clickadu slots.
-              </p>
-              <div className="grid grid-cols-5 gap-2">
-                {[1, 2, 3, 4, 5].map((n) => {
+              <div className="grid grid-cols-6 gap-2">
+                {[1, 2, 3, 4, 5, 6].map((n) => {
                   const selected = n === buttonPosition;
                   return (
                     <button
@@ -139,7 +162,7 @@ export default function CreateLinks() {
                           : "border-border bg-background text-foreground hover:border-foreground"
                       }`}
                     >
-                      <span className="text-xs uppercase tracking-wider opacity-70">
+                      <span className="text-[10px] uppercase tracking-wider opacity-70">
                         Btn
                       </span>
                       <span className="text-lg">{n}</span>
@@ -170,13 +193,9 @@ export default function CreateLinks() {
                   className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Every 1st, 3rd, 5th… click on a Clickadu slot routes here.
-                Every 2nd, 4th, 6th… routes to the admin Clickadu link.
-              </p>
             </div>
 
-            {/* Tracking ID */}
+            {/* Tracking ID (admin-issued) */}
             <div>
               <label
                 htmlFor="tracking"
@@ -186,26 +205,33 @@ export default function CreateLinks() {
               </label>
               <div className="relative">
                 <Hash className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
+                <select
                   id="tracking"
-                  type="text"
                   required
-                  autoComplete="off"
-                  placeholder="e.g. CAMPAIGN-01"
                   value={trackingId}
                   onChange={(e) => setTrackingId(e.target.value)}
-                  className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
+                  disabled={loadingTids || trackingIds.length === 0}
+                  className="h-12 w-full appearance-none rounded-md border border-input bg-background pl-9 pr-3 text-sm font-mono uppercase outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
+                >
+                  {loadingTids ? (
+                    <option value="">Loading…</option>
+                  ) : trackingIds.length === 0 ? (
+                    <option value="">No Tracking IDs issued yet</option>
+                  ) : (
+                    trackingIds.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.id}
+                        {t.note ? ` — ${t.note}` : ""}
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Counts are stored per slug, not shared across links using the
-                same Tracking ID.
-              </p>
             </div>
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || trackingIds.length === 0}
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
             >
               {submitting ? (
@@ -217,7 +243,7 @@ export default function CreateLinks() {
             </button>
           </form>
         ) : (
-          <div className="mt-10 rounded-lg border border-border bg-card p-6 sm:p-8">
+          <div className="mt-6 rounded-lg border border-border bg-card p-6 sm:p-8">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Sparkles className="h-4 w-4" />
               Your Lockede short URL
