@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import {
@@ -12,34 +12,59 @@ import {
   Download,
   BarChart3,
   ImagePlus,
+  Hash,
+  FileText,
+  Plus,
+  Trash2,
+  Save,
+  Copy,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
-import { ADMIN_PASSWORD, ALLOWED_TRACKING_IDS, SHAREABLE_DOMAIN } from "@/lib/adminConfig";
+import { ADMIN_PASSWORD, SHAREABLE_DOMAIN } from "@/lib/adminConfig";
 import { listPreviews } from "@/lib/previewsApi";
 import type { PreviewDoc } from "@/lib/articleTypes";
 import { utcDateString } from "@/lib/analytics";
 import BannerAdManager from "@/components/BannerAdManager";
+import {
+  createTrackingId,
+  deleteTrackingId,
+  listTrackingIds,
+  type TrackingId,
+} from "@/lib/trackingIdsApi";
+import {
+  DEFAULT_LANDING_ARTICLE,
+  getLandingArticle,
+  saveLandingArticle,
+  type LandingArticle,
+} from "@/lib/landingArticleApi";
 
-const SESSION_KEY = "vindoy_admin_auth";
+const SESSION_KEY = "lockede_admin_auth";
 const MIN_CLICKS_OPTIONS = [100, 150, 200] as const;
 
-type TabId = "analytics" | "banner";
+type TabId = "analytics" | "tracking" | "article" | "banner";
 
 export default function Admin() {
   const [authed, setAuthed] = useState<boolean>(() => {
-    try { return sessionStorage.getItem(SESSION_KEY) === "1"; } catch { return false; }
+    try {
+      return sessionStorage.getItem(SESSION_KEY) === "1";
+    } catch {
+      return false;
+    }
   });
   const [tab, setTab] = useState<TabId>("analytics");
 
   return (
     <Layout>
-      <SEO title="Admin · Vindoy" />
+      <SEO title="Admin · Lockede" />
       <div className="container max-w-6xl py-8">
         {authed ? (
           <>
             <nav className="mb-6 flex flex-wrap items-center gap-1 border-b border-border">
               {[
                 { id: "analytics" as const, label: "Analytics", icon: BarChart3 },
+                { id: "tracking" as const, label: "Tracking IDs", icon: Hash },
+                { id: "article" as const, label: "Landing Article", icon: FileText },
                 { id: "banner" as const, label: "Banner Ads", icon: ImagePlus },
               ].map(({ id, label, icon: Icon }) => {
                 const active = tab === id;
@@ -60,7 +85,11 @@ export default function Admin() {
               })}
               <button
                 onClick={() => {
-                  try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
+                  try {
+                    sessionStorage.removeItem(SESSION_KEY);
+                  } catch {
+                    /* ignore */
+                  }
                   setAuthed(false);
                 }}
                 className="ml-auto mb-2 inline-flex items-center gap-1 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:bg-secondary"
@@ -68,13 +97,22 @@ export default function Admin() {
                 <LogOut className="h-3.5 w-3.5" /> Logout
               </button>
             </nav>
-            {tab === "analytics" ? <AnalyticsDashboard /> : <BannerAdManager />}
+            {tab === "analytics" && <AnalyticsDashboard />}
+            {tab === "tracking" && <TrackingIdsPanel />}
+            {tab === "article" && <ArticleEditorPanel />}
+            {tab === "banner" && <BannerAdManager />}
           </>
         ) : (
-          <LoginGate onSuccess={() => {
-            try { sessionStorage.setItem(SESSION_KEY, "1"); } catch { /* ignore */ }
-            setAuthed(true);
-          }} />
+          <LoginGate
+            onSuccess={() => {
+              try {
+                sessionStorage.setItem(SESSION_KEY, "1");
+              } catch {
+                /* ignore */
+              }
+              setAuthed(true);
+            }}
+          />
         )}
       </div>
     </Layout>
@@ -90,15 +128,17 @@ function LoginGate({ onSuccess }: { onSuccess: () => void }) {
           <Lock className="h-4 w-4" />
         </div>
         <div>
-          <h1 className="font-semibold">Vindoy Admin</h1>
+          <h1 className="font-semibold">Lockede Admin</h1>
           <p className="text-xs text-muted-foreground">Enter password to continue.</p>
         </div>
       </div>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (pw === ADMIN_PASSWORD) { onSuccess(); toast.success("Welcome back"); }
-          else toast.error("Wrong password");
+          if (pw === ADMIN_PASSWORD) {
+            onSuccess();
+            toast.success("Welcome back");
+          } else toast.error("Wrong password");
         }}
         className="space-y-3"
       >
@@ -121,6 +161,239 @@ function LoginGate({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
+/* ---------- Tracking IDs ---------- */
+function TrackingIdsPanel() {
+  const [rows, setRows] = useState<TrackingId[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [note, setNote] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function refresh() {
+    setLoading(true);
+    try {
+      setRows(await listTrackingIds());
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not load Tracking IDs");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  async function handleCreate() {
+    setCreating(true);
+    try {
+      const t = await createTrackingId(note.trim() || undefined);
+      setNote("");
+      toast.success(`Issued Tracking ID ${t.id}`);
+      refresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not issue Tracking ID");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm(`Delete Tracking ID ${id}?`)) return;
+    try {
+      await deleteTrackingId(id);
+      toast.success(`Deleted ${id}`);
+      refresh();
+    } catch {
+      toast.error("Could not delete");
+    }
+  }
+
+  async function copy(id: string) {
+    await navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1500);
+  }
+
+  return (
+    <section className="space-y-6">
+      <header>
+        <h1 className="text-xl font-semibold">Tracking IDs</h1>
+        <p className="text-xs text-muted-foreground">
+          Issue three-letter uppercase Tracking IDs. Users pick from these when creating short links.
+        </p>
+      </header>
+
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="flex-1 text-xs font-medium text-muted-foreground">
+            Optional note
+            <input
+              type="text"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. Campaign name / owner"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+            />
+          </label>
+          <button
+            onClick={handleCreate}
+            disabled={creating}
+            className="inline-flex h-[38px] items-center justify-center gap-1.5 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+          >
+            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            Issue new ID
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="grid grid-cols-[1fr_2fr_1fr_auto] gap-2 border-b border-border bg-secondary/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span>ID</span>
+          <span>Note</span>
+          <span>Created</span>
+          <span />
+        </div>
+        {loading ? (
+          <div className="grid place-items-center py-12 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">
+            No Tracking IDs yet. Issue one above.
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {rows.map((r) => (
+              <li
+                key={r.id}
+                className="grid grid-cols-[1fr_2fr_1fr_auto] items-center gap-2 px-4 py-3 text-sm"
+              >
+                <span className="font-mono font-semibold">{r.id}</span>
+                <span className="truncate text-muted-foreground">{r.note || "—"}</span>
+                <span className="text-xs text-muted-foreground">{r.createdAt.slice(0, 10)}</span>
+                <span className="flex items-center gap-2 justify-end">
+                  <button
+                    onClick={() => copy(r.id)}
+                    className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs hover:bg-secondary"
+                  >
+                    {copiedId === r.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(r.id)}
+                    className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Landing Article ---------- */
+function ArticleEditorPanel() {
+  const [art, setArt] = useState<LandingArticle>(DEFAULT_LANDING_ARTICLE);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getLandingArticle()
+      .then(setArt)
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await saveLandingArticle(art);
+      toast.success("Landing article saved");
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not save article");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="grid place-items-center py-16 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <section className="space-y-4">
+      <header>
+        <h1 className="text-xl font-semibold">Landing Article</h1>
+        <p className="text-xs text-muted-foreground">
+          Shown on every short-link landing page. Destination and Clickadu links stay per-slug; this article is shared.
+        </p>
+      </header>
+
+      <div className="space-y-4 rounded-xl border border-border bg-card p-5">
+        <label className="block text-xs font-medium text-muted-foreground">
+          Title
+          <input
+            type="text"
+            value={art.title}
+            onChange={(e) => setArt({ ...art, title: e.target.value })}
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+          />
+        </label>
+
+        <label className="block text-xs font-medium text-muted-foreground">
+          First paragraph (shown above the buttons)
+          <textarea
+            rows={4}
+            value={art.firstParagraph}
+            onChange={(e) => setArt({ ...art, firstParagraph: e.target.value })}
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+          />
+        </label>
+
+        <label className="block text-xs font-medium text-muted-foreground">
+          Button instruction (short)
+          <input
+            type="text"
+            value={art.instruction}
+            onChange={(e) => setArt({ ...art, instruction: e.target.value })}
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+          />
+        </label>
+
+        <label className="block text-xs font-medium text-muted-foreground">
+          Rest of the article (blank line = new paragraph)
+          <textarea
+            rows={10}
+            value={art.bodyHtml}
+            onChange={(e) => setArt({ ...art, bodyHtml: e.target.value })}
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring font-mono"
+          />
+        </label>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Save
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Analytics (unchanged behavior) ---------- */
 function defaultFromDate(): string {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() - 29);
@@ -128,7 +401,6 @@ function defaultFromDate(): string {
 }
 
 function dateOnly(iso: string): string {
-  // createdAt is stored as ISO string. Use UTC date portion.
   return iso ? iso.slice(0, 10) : "";
 }
 
@@ -153,8 +425,7 @@ function AnalyticsDashboard() {
     setLoading(true);
     setOpenRow(null);
     try {
-      const fresh = await listPreviews();
-      setData(fresh);
+      setData(await listPreviews());
       setFetched(true);
     } catch (e) {
       console.error(e);
@@ -166,29 +437,20 @@ function AnalyticsDashboard() {
 
   const trackingOptions = useMemo(() => {
     const ids = data.map((p) => p.trackingId).filter((x): x is string => !!x);
-    const hasOther = data.some((p) => !p.trackingId);
-    const options = [...new Set([...ids, ...ALLOWED_TRACKING_IDS])].sort();
-    if (hasOther) options.unshift("Other");
-    return options;
+    return [...new Set(ids)].sort();
   }, [data]);
 
   const dateRows: DateRow[] = useMemo(() => {
     const byDate = new Map<string, DateRow>();
     for (const p of data) {
-      const hasTrackingId = !!p.trackingId;
-      if (trackingFilter === "Other") {
-        if (hasTrackingId) continue;
-      } else if (trackingFilter && p.trackingId !== trackingFilter) {
-        continue;
-      }
+      if (trackingFilter && p.trackingId !== trackingFilter) continue;
       const clicks = Number(p.clicks || 0);
       if (clicks < minClicks) continue;
       const date = dateOnly(p.createdAt);
       if (!date) continue;
       if (date < fromDate || date > toDate) continue;
-      if (!byDate.has(date)) {
+      if (!byDate.has(date))
         byDate.set(date, { date, qualifyingLinks: 0, totalClicks: 0, links: [] });
-      }
       const row = byDate.get(date)!;
       row.qualifyingLinks += 1;
       row.totalClicks += clicks;
@@ -196,7 +458,7 @@ function AnalyticsDashboard() {
         slug: p.slug,
         shortUrl: `${SHAREABLE_DOMAIN}/${p.slug}`,
         clicks,
-        trackingId: p.trackingId || "Other",
+        trackingId: p.trackingId || "—",
       });
     }
     return [...byDate.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -206,12 +468,8 @@ function AnalyticsDashboard() {
     <>
       <header className="mb-6">
         <h1 className="text-xl font-semibold">Analytics</h1>
-        <p className="text-xs text-muted-foreground">
-          Real-time fetch from previews · click "Fetch Data" to refresh
-        </p>
       </header>
 
-      {/* FILTERS */}
       <section className="mb-5 rounded-xl border border-border bg-card p-4">
         <div className="mb-3 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
           <Filter className="h-3.5 w-3.5" /> Filters
@@ -247,7 +505,9 @@ function AnalyticsDashboard() {
             >
               <option value="">All Tracking IDs</option>
               {trackingOptions.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
           </label>
@@ -259,7 +519,9 @@ function AnalyticsDashboard() {
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
             >
               {MIN_CLICKS_OPTIONS.map((n) => (
-                <option key={n} value={n}>{n}</option>
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </select>
           </label>
@@ -274,7 +536,6 @@ function AnalyticsDashboard() {
         </div>
       </section>
 
-      {/* TABLE: GROUPED BY DATE (DESC) */}
       <section className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="grid grid-cols-[1.5rem_1fr_1fr_1fr] gap-2 border-b border-border bg-secondary/40 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           <span />
@@ -328,7 +589,9 @@ function AnalyticsDashboard() {
                               >
                                 <LinkIcon className="h-3 w-3 shrink-0" />
                                 <span className="truncate">{url.replace(/^https?:\/\//, "")}</span>
-                                <span className="ml-1 shrink-0 rounded bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{l.trackingId}</span>
+                                <span className="ml-1 shrink-0 rounded bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                                  {l.trackingId}
+                                </span>
                               </a>
                               <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                                 <MousePointerClick className="h-3 w-3" />
