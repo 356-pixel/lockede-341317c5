@@ -1,135 +1,205 @@
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
-import ShortenForm from "@/components/ShortenForm";
-import FeaturedPreviews from "@/components/FeaturedPreviews";
-import { Shield, Link2, Zap } from "lucide-react";
+import { BLOGS } from "@/lib/blogs";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 
-const FacebookIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-  </svg>
-);
-
-const features = [
-  {
-    icon: FacebookIcon,
-    isCustom: true,
-    title: "Facebook Browser Compatible",
-    desc: "Shortened links open reliably inside Facebook's in-app browser, ensuring a smooth experience when sharing links on social media.",
-  },
-  {
-    icon: Link2,
-    title: "Shorten Any Link",
-    desc: "Whether it's a Twitter/X video, website, article, YouTube video, blog post, document, or any other URL, Vindoy can shorten it instantly.",
-  },
-  {
-    icon: Shield,
-    title: "Secure & Reliable",
-    desc: "All shortened links are protected by secure infrastructure and fast redirects, ensuring dependable performance and user trust.",
-  },
-];
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 export default function Home() {
+  const featured = BLOGS.find((b) => b.featured) ?? BLOGS[0];
+  const secondary = BLOGS.filter((b) => b.id !== featured.id).slice(0, 4);
+  const recommended = BLOGS.filter(
+    (b) => b.id !== featured.id && !secondary.some((s) => s.id === b.id),
+  ).slice(0, 3);
+
   return (
     <Layout>
       <SEO
-        title="Vindoy — Shorten Twitter Video Links Instantly"
-        description="Vindoy URL Shortener turns long Twitter/X video links and any URL into clean, fast, shareable short links. Free, instant, no signup."
+        title="Lockede — Tech, Marketing & Utility Tools Blog"
+        description="Minimalist reads on tech trends, social media marketing, URL shortening, and everyday utility tools."
       />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        {/* Ambient gradient blobs */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10"
-        >
-          <div className="absolute -top-32 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.35),transparent_60%)] blur-3xl" />
-          <div className="absolute right-[-120px] top-40 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle_at_center,hsl(var(--accent)/0.30),transparent_60%)] blur-3xl" />
-          <div className="absolute left-[-120px] top-60 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle_at_center,hsl(var(--primary-glow)/0.30),transparent_60%)] blur-3xl" />
-        </div>
-
-        <div className="container max-w-3xl py-10 sm:py-24">
-          <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary backdrop-blur">
-              <Zap className="h-3.5 w-3.5" />
-              Works inside Facebook browser
-            </span>
-            <h1 className="mt-5 text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Shorten{" "}
-              <span className="text-gradient-primary">Twitter Video Links</span>{" "}
-              Instantly
-            </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Paste any long URL from Twitter/X video, article, or product page.
+      {/* Masthead */}
+      <section className="border-b border-border/60">
+        <div className="container py-10 sm:py-14">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                The Lockede Journal
+              </p>
+              <h1 className="mt-3 max-w-3xl text-balance text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
+                Notes on the internet, quietly written.
+              </h1>
+            </div>
+            <p className="max-w-sm text-sm text-muted-foreground sm:text-right">
+              Tech, marketing, URL shortening, and utility tools — short reads
+              with a point of view.
             </p>
           </div>
-
-          <div className="mt-10">
-            <ShortenForm />
-          </div>
-
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Free · No signup · Works with any link
-          </p>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="container pb-12" aria-labelledby="features-title">
-        <h2 id="features-title" className="sr-only">
-          Features
-        </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {features.map((f) => (
-            <div
-              key={f.title}
-              className="rounded-2xl border border-border/60 bg-card/60 p-5 shadow-sm backdrop-blur-xl transition-transform hover:-translate-y-1"
-            >
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-md shadow-primary/20">
-                {f.isCustom ? (
-                  <f.icon />
-                ) : (
-                  <f.icon className="h-5 w-5" />
-                )}
+      {/* Featured + side stack */}
+      <section className="container py-12">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+          {/* Featured post */}
+          <article className="group">
+            <Link to={`/blogs/${featured.id}`} className="block">
+              <div className="aspect-[16/10] w-full overflow-hidden rounded-lg bg-secondary">
+                <img
+                  src={featured.image}
+                  alt={featured.title}
+                  loading="eager"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                />
               </div>
-              <h3 className="mt-4 text-base font-semibold">{f.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
+              <div className="mt-6">
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="rounded-full bg-primary px-2.5 py-1 font-semibold uppercase tracking-wider text-primary-foreground">
+                    Featured
+                  </span>
+                  <span className="font-medium uppercase tracking-wider text-muted-foreground">
+                    {featured.category}
+                  </span>
+                  <span className="text-muted-foreground">·</span>
+                  <time className="text-muted-foreground">
+                    {formatDate(featured.publishedAt)}
+                  </time>
+                </div>
+                <h2 className="mt-4 text-balance text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                  {featured.title}
+                </h2>
+                <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                  {featured.excerpt}
+                </p>
+                <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-foreground group-hover:underline">
+                  Read the story <ArrowRight className="h-4 w-4" />
+                </span>
+              </div>
+            </Link>
+          </article>
+
+          {/* Side stack */}
+          <aside className="flex flex-col divide-y divide-border/60">
+            <div className="pb-4">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Latest
+              </h3>
             </div>
+            {secondary.map((p) => (
+              <Link
+                key={p.id}
+                to={`/blogs/${p.id}`}
+                className="group flex gap-4 py-5 first:pt-4"
+              >
+                <div className="aspect-square h-20 w-20 flex-none overflow-hidden rounded-md bg-secondary">
+                  <img
+                    src={p.image}
+                    alt={p.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {p.category}
+                  </span>
+                  <h4 className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug group-hover:underline">
+                    {p.title}
+                  </h4>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {formatDate(p.publishedAt)} · {p.readMinutes} min read
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </aside>
+        </div>
+      </section>
+
+      {/* Create Links promo */}
+      <section className="container">
+        <div className="relative overflow-hidden rounded-lg border border-border bg-primary p-8 text-primary-foreground sm:p-12">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] opacity-70">
+              Lockede Tools
+            </p>
+            <h2 className="mt-3 text-balance text-3xl font-bold leading-tight sm:text-4xl">
+              A cleaner short link on lockede.com — in one click.
+            </h2>
+            <p className="mt-3 max-w-lg text-base opacity-85">
+              Paste a destination, pick a slot, and generate a five-character
+              short URL you can share anywhere.
+            </p>
+            <Link
+              to="/create"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary-foreground px-5 py-2.5 text-sm font-semibold text-primary transition-transform hover:-translate-y-0.5"
+            >
+              Create a Link
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Recommended */}
+      <section className="container py-16">
+        <div className="mb-6 flex items-end justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Recommended
+            </p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+              Hand-picked reads
+            </h2>
+          </div>
+          <Link
+            to="/blogs"
+            className="hidden items-center gap-1 text-sm font-semibold text-foreground hover:underline sm:inline-flex"
+          >
+            All blogs <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {recommended.map((p) => (
+            <Link
+              key={p.id}
+              to={`/blogs/${p.id}`}
+              className="group flex flex-col"
+            >
+              <div className="aspect-[16/10] w-full overflow-hidden rounded-md bg-secondary">
+                <img
+                  src={p.image}
+                  alt={p.title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+              </div>
+              <div className="mt-4 flex-1">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {p.category}
+                </span>
+                <h3 className="mt-2 text-lg font-bold leading-snug group-hover:underline">
+                  {p.title}
+                </h3>
+                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                  {p.excerpt}
+                </p>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {formatDate(p.publishedAt)} · {p.readMinutes} min read
+                </p>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
-
-      {/* SEO Article */}
-      <section className="container max-w-3xl pb-20">
-        <article className="rounded-2xl border border-border/60 bg-card/60 p-6 sm:p-8 backdrop-blur-xl">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            About Vindoy URL Shortener
-          </h2>
-          <div className="mt-6 space-y-4 text-[15px] leading-7 text-muted-foreground">
-            <p>
-              Vindoy URL Shortener is designed for Twitter/X video links, making
-              them easier to share and open inside Facebook's in-app browser. It
-              also works as a universal URL shortener for websites, articles,
-              videos, and any other link.
-            </p>
-            <p>
-              Beyond its optimized use for Twitter/X video links, Vindoy URL
-              Shortener provides a fast, secure, and scalable way to manage long
-              URLs across the web. It works as a powerful link management tool for
-              marketers, creators, and businesses who need clean, trackable short
-              links. Every shortened URL is designed for speed and reliability,
-              ensuring smooth redirection without delays or broken access. As a free
-              URL shortener, Vindoy helps users share content easily across social
-              media platforms, messaging apps, and websites. It supports articles,
-              videos, blogs, and product pages. With a simple interface and instant
-              generation, Vindoy improves sharing efficiency fast.
-            </p>
-          </div>
-        </article>
-      </section>
-
-      <FeaturedPreviews />
     </Layout>
   );
 }
