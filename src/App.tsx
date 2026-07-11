@@ -12,7 +12,7 @@ import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import CreateLinks from "./pages/CreateLinks";
 import LinkPage from "./pages/LinkPage";
-import PreviewPage from "./pages/PreviewPage";
+
 import NotFound from "./pages/NotFound";
 import PageTracker from "./components/PageTracker";
 
@@ -44,7 +44,7 @@ const App = () => (
               </Suspense>
             }
           />
-          <Route path="/:slug" element={<PreviewPage />} />
+          <Route path="/:slug" element={<LinkPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
