@@ -3,13 +3,13 @@ import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB3s_iltBctxS7Sq7Iy7KAPBnHLx8n_MfU",
-  authDomain: "vindoy-45678.firebaseapp.com",
-  projectId: "vindoy-45678",
-  storageBucket: "vindoy-45678.firebasestorage.app",
-  messagingSenderId: "802062575732",
-  appId: "1:802062575732:web:e9c5cf66919ce64665c921",
-  measurementId: "G-D41FKXCFK2"
+  apiKey: "@secret:GOOGLE_API_KEY ",
+  authDomain: "lockedeurl.firebaseapp.com",
+  projectId: "lockedeurl",
+  storageBucket: "lockedeurl.firebasestorage.app",
+  messagingSenderId: "698178658185",
+  appId: "1:698178658185:web:9111b75424ea6685d94b58",
+  measurementId: "G-CM12GD66V1"
 };
 
 export const app = initializeApp(firebaseConfig);

@@ -109,7 +109,7 @@ export default function LinkPage() {
                 disabled={busy}
                 className="group flex items-center justify-between rounded-md border border-border bg-background px-4 py-4 text-left text-sm font-semibold text-foreground transition-colors hover:border-foreground hover:bg-secondary disabled:opacity-60"
               >
-                <span>Option {position}</span>
+                <span>Link {position}</span>
                 <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
               </button>
             ))}
