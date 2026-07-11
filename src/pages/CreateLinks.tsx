@@ -2,9 +2,8 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import { toast } from "sonner";
-import { Copy, Check, Loader2, RotateCcw, Sparkles, Link2 } from "lucide-react";
+import { Copy, Check, Loader2, RotateCcw, Sparkles, Link2, Hash, MousePointerClick } from "lucide-react";
 import {
-  CLICKADU_LINKS,
   LOCKEDE_DOMAIN,
   createLockedeLink,
   generateUniqueLinkSlug,
@@ -22,6 +21,8 @@ function isValidUrl(url: string): boolean {
 export default function CreateLinks() {
   const [destinationUrl, setDestinationUrl] = useState("");
   const [buttonPosition, setButtonPosition] = useState(1);
+  const [clickaduLink, setClickaduLink] = useState("");
+  const [trackingId, setTrackingId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState("");
   const [copied, setCopied] = useState(false);
@@ -29,8 +30,13 @@ export default function CreateLinks() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const url = destinationUrl.trim();
+    const clickadu = clickaduLink.trim();
+    const tid = trackingId.trim();
     if (!isValidUrl(url))
       return toast.error("Please enter a valid http(s) destination URL");
+    if (!isValidUrl(clickadu))
+      return toast.error("Please enter a valid Clickadu Direct Link");
+    if (!tid) return toast.error("Please enter a Tracking ID");
     if (buttonPosition < 1 || buttonPosition > 5)
       return toast.error("Choose a button position from 1 to 5");
 
@@ -41,7 +47,8 @@ export default function CreateLinks() {
         slug,
         destinationUrl: url,
         buttonPosition,
-        clickaduLinks: CLICKADU_LINKS,
+        clickaduLink: clickadu,
+        trackingId: tid,
         createdAt: new Date().toISOString(),
       });
       setGenerated(`${LOCKEDE_DOMAIN}/${slug}`);
@@ -65,6 +72,8 @@ export default function CreateLinks() {
     setGenerated("");
     setDestinationUrl("");
     setButtonPosition(1);
+    setClickaduLink("");
+    setTrackingId("");
     setCopied(false);
   }
 
@@ -72,20 +81,12 @@ export default function CreateLinks() {
     <Layout>
       <SEO
         title="Create Links · Lockede"
-        description="Generate a clean lockede.com short URL. Paste a destination, pick a button slot, and share."
+        description="Generate a clean lockede.com short URL."
       />
       <section className="container max-w-2xl py-12 sm:py-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Lockede Tools
-        </p>
-        <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
           Create a short link
         </h1>
-        <p className="mt-4 text-base text-muted-foreground">
-          Paste your destination, choose which of the five buttons on the
-          bridge page will lead to it, and generate a five-character
-          lockede.com URL.
-        </p>
 
         {!generated ? (
           <form
@@ -113,10 +114,6 @@ export default function CreateLinks() {
                   className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                This is the real page visitors will reach after clicking the
-                correct button on the bridge page.
-              </p>
             </div>
 
             {/* Button position */}
@@ -126,8 +123,7 @@ export default function CreateLinks() {
               </label>
               <p className="mb-3 text-xs text-muted-foreground">
                 Pick which of the five buttons on the bridge page will hold
-                your destination. The remaining four positions are
-                automatically filled with Clickadu direct links.
+                your destination. The remaining four are Clickadu slots.
               </p>
               <div className="grid grid-cols-5 gap-2">
                 {[1, 2, 3, 4, 5].map((n) => {
@@ -151,6 +147,60 @@ export default function CreateLinks() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Clickadu Direct Link */}
+            <div>
+              <label
+                htmlFor="clickadu"
+                className="mb-2 block text-sm font-medium"
+              >
+                Clickadu Direct Link
+              </label>
+              <div className="relative">
+                <MousePointerClick className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  id="clickadu"
+                  type="url"
+                  required
+                  autoComplete="off"
+                  placeholder="https://your-clickadu-direct-link"
+                  value={clickaduLink}
+                  onChange={(e) => setClickaduLink(e.target.value)}
+                  className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Every 1st, 3rd, 5th… click on a Clickadu slot routes here.
+                Every 2nd, 4th, 6th… routes to the admin Clickadu link.
+              </p>
+            </div>
+
+            {/* Tracking ID */}
+            <div>
+              <label
+                htmlFor="tracking"
+                className="mb-2 block text-sm font-medium"
+              >
+                Tracking ID
+              </label>
+              <div className="relative">
+                <Hash className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  id="tracking"
+                  type="text"
+                  required
+                  autoComplete="off"
+                  placeholder="e.g. CAMPAIGN-01"
+                  value={trackingId}
+                  onChange={(e) => setTrackingId(e.target.value)}
+                  className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Counts are stored per slug, not shared across links using the
+                same Tracking ID.
+              </p>
             </div>
 
             <button
@@ -191,13 +241,6 @@ export default function CreateLinks() {
                 )}
                 {copied ? "Copied!" : "Copy URL"}
               </button>
-            </div>
-            <div className="mt-4 rounded-md border border-border/70 bg-secondary/50 px-4 py-3 text-xs text-muted-foreground">
-              Destination button position:{" "}
-              <span className="font-semibold text-foreground">
-                {buttonPosition}
-              </span>{" "}
-              — the other four buttons are filled with Clickadu direct links.
             </div>
             <button
               type="button"

@@ -4,6 +4,7 @@ import { ExternalLink, Loader2 } from "lucide-react";
 import {
   getLockedeLink,
   incrementLinkClicks,
+  registerClickaduClick,
   type LockedeLink,
 } from "@/lib/linksApi";
 
@@ -17,6 +18,7 @@ export default function LinkPage() {
   const { slug = "" } = useParams();
   const navigate = useNavigate();
   const [link, setLink] = useState<LockedeLink | null | undefined>(undefined);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,26 +46,25 @@ export default function LinkPage() {
   }
   if (!link) return null;
 
-  const buttons = Array.from({ length: 5 }, (_, i) => {
-    const position = i + 1;
-    const isDestination = position === link.buttonPosition;
-    if (isDestination) {
-      return { position, url: normalizeUrl(link.destinationUrl), isDestination };
+  async function handleClick(position: number) {
+    if (busy) return;
+    const isDestination = position === link!.buttonPosition;
+    setBusy(true);
+    try {
+      if (isDestination) {
+        incrementLinkClicks(slug);
+        window.open(
+          normalizeUrl(link!.destinationUrl),
+          "_blank",
+          "noopener,noreferrer",
+        );
+      } else {
+        const { url } = await registerClickaduClick(slug);
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    } finally {
+      setBusy(false);
     }
-    // Fill remaining slots with Clickadu links, cycling if fewer than 4.
-    const clickaduIdx =
-      (position > link.buttonPosition ? position - 2 : position - 1) %
-      link.clickaduLinks.length;
-    return {
-      position,
-      url: link.clickaduLinks[clickaduIdx] ?? link.clickaduLinks[0],
-      isDestination,
-    };
-  });
-
-  function handleClick(url: string, isDestination: boolean) {
-    if (isDestination) incrementLinkClicks(slug);
-    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -83,13 +84,14 @@ export default function LinkPage() {
           </div>
 
           <div className="mt-8 space-y-3">
-            {buttons.map((b) => (
+            {[1, 2, 3, 4, 5].map((position) => (
               <button
-                key={b.position}
-                onClick={() => handleClick(b.url, b.isDestination)}
-                className="group flex w-full items-center justify-between rounded-md border border-border bg-card px-5 py-4 text-left text-sm font-semibold text-foreground transition-colors hover:border-foreground hover:bg-secondary"
+                key={position}
+                onClick={() => handleClick(position)}
+                disabled={busy}
+                className="group flex w-full items-center justify-between rounded-md border border-border bg-card px-5 py-4 text-left text-sm font-semibold text-foreground transition-colors hover:border-foreground hover:bg-secondary disabled:opacity-60"
               >
-                <span>Continue — Option {b.position}</span>
+                <span>Continue — Option {position}</span>
                 <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
               </button>
             ))}
