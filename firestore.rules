@@ -24,6 +24,9 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true;
     }
+    match /trackingIds/{tid} {
+      allow read, write: if true;
+    }
     match /tracking_analytics/{tid} {
       allow read: if true;
       allow create: if true;
