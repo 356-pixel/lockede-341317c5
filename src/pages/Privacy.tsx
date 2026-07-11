@@ -5,59 +5,61 @@ export default function Privacy() {
   return (
     <Layout>
       <SEO
-        title="Privacy Policy · Vindoy"
-        description="How Vindoy handles data, cookies, user-generated content, and external links."
+        title="Privacy Policy · Lockede"
+        description="How Lockede handles data, cookies, generated short links, and third-party ads."
       />
-      <section className="container max-w-3xl py-12">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+      <section className="container max-w-3xl py-12 sm:py-16">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Legal
+        </p>
+        <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
           Privacy Policy
         </h1>
         <p className="mt-3 text-sm text-muted-foreground">
           Last updated: {new Date().toLocaleDateString()}
         </p>
 
-        <div className="mt-8 space-y-8 text-[15px] leading-7">
+        <div className="mt-10 space-y-8 text-[15px] leading-7">
           <section>
             <h2 className="text-xl font-semibold">Data we collect</h2>
             <p className="mt-2">
-              Vindoy is designed to collect as little personal data as
-              possible. Previews you create are stored locally in your browser
-              by default. If you contact us, we keep the information you send
-              only as long as needed to respond.
+              Lockede is designed to collect as little personal data as
+              possible. When you create a short link, we store the destination
+              URL, the generated slug, and a click counter. We do not require
+              you to sign up or provide personal information.
             </p>
           </section>
           <section>
-            <h2 className="text-xl font-semibold">Cookies and local storage</h2>
+            <h2 className="text-xl font-semibold">Cookies and analytics</h2>
             <p className="mt-2">
-              We use browser local storage to save the previews you've created
-              so you can revisit them. We may use minimal analytics cookies to
-              understand which pages are popular. You can clear local storage
-              and cookies at any time from your browser settings.
+              We use minimal analytics to understand which posts are being
+              read. We do not build advertising profiles. You can clear
+              cookies and local storage at any time from your browser
+              settings.
             </p>
           </section>
           <section>
-            <h2 className="text-xl font-semibold">User-generated content</h2>
+            <h2 className="text-xl font-semibold">Short links you create</h2>
             <p className="mt-2">
-              Previews, titles, and images submitted through Vindoy are
-              your responsibility. By submitting content you confirm you have
-              the right to share it and that it doesn't infringe copyright,
-              violate privacy, or include illegal material. We may remove
-              content that breaks these rules or that we believe is harmful.
+              You are responsible for the destinations you shorten. Do not
+              use Lockede to shorten links to malware, illegal content, or
+              anything that violates third-party rights. Links found to
+              break these rules may be disabled without notice.
             </p>
           </section>
           <section>
-            <h2 className="text-xl font-semibold">External links</h2>
+            <h2 className="text-xl font-semibold">Third-party ads</h2>
             <p className="mt-2">
-              Previews link to third-party websites. We don't control those
-              sites and aren't responsible for their content, privacy
-              practices, or accuracy. Review the destination site's own terms
-              and policies before sharing personal information there.
+              Bridge pages between a short link and its destination may
+              display advertising from partners such as Clickadu. Those
+              partners have their own privacy practices. Review their
+              policies if you interact with an ad.
             </p>
           </section>
           <section>
             <h2 className="text-xl font-semibold">Contact</h2>
             <p className="mt-2">
-              For privacy questions, reach us via the Contact page and we'll
+              For privacy questions, use the Contact page and we will
               respond as soon as we can.
             </p>
           </section>

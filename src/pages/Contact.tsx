@@ -33,14 +33,12 @@ export default function Contact() {
     )
       return toast.error("Inputs are too long");
 
-    // Sanitize (basic) and pretend-send
-    const payload = {
+    void {
       name: sanitize(name),
       email: sanitize(email),
       subject: sanitize(subject),
       message: sanitize(message),
     };
-    void payload;
     setSent(true);
     setForm({ name: "", email: "", subject: "", message: "" });
     toast.success("Message received — we'll be in touch");
@@ -49,11 +47,14 @@ export default function Contact() {
   return (
     <Layout>
       <SEO
-        title="Contact · Vindoy"
-        description="Get in touch with the Vindoy team."
+        title="Contact · Lockede"
+        description="Get in touch with the Lockede team."
       />
-      <section className="container max-w-2xl py-12">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+      <section className="container max-w-2xl py-12 sm:py-16">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Say hello
+        </p>
+        <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
           Contact us
         </h1>
         <p className="mt-3 text-muted-foreground">
@@ -62,7 +63,7 @@ export default function Contact() {
 
         <form
           onSubmit={onSubmit}
-          className="mt-8 space-y-5 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8"
+          className="mt-8 space-y-5 rounded-lg border border-border bg-card p-6 sm:p-8"
           noValidate
         >
           {[
@@ -71,10 +72,7 @@ export default function Contact() {
             { k: "subject", label: "Subject", type: "text" },
           ].map((f) => (
             <div key={f.k}>
-              <label
-                htmlFor={f.k}
-                className="mb-2 block text-sm font-medium"
-              >
+              <label htmlFor={f.k} className="mb-2 block text-sm font-medium">
                 {f.label}
               </label>
               <input
@@ -84,7 +82,7 @@ export default function Contact() {
                 maxLength={MAX[f.k as keyof typeof MAX]}
                 value={form[f.k as keyof typeof form]}
                 onChange={(e) => update(f.k as keyof typeof form, e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           ))}
@@ -99,12 +97,12 @@ export default function Contact() {
               maxLength={MAX.message}
               value={form.message}
               onChange={(e) => update("message", e.target.value)}
-              className="w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
+              className="w-full resize-y rounded-md border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 sm:w-auto"
+            className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 sm:w-auto"
           >
             Send message
           </button>

@@ -10,6 +10,8 @@ import BlogPost from "./pages/BlogPost";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
+import CreateLinks from "./pages/CreateLinks";
+import LinkPage from "./pages/LinkPage";
 import PreviewPage from "./pages/PreviewPage";
 import NotFound from "./pages/NotFound";
 import PageTracker from "./components/PageTracker";
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/create" element={<CreateLinks />} />
+          <Route path="/l/:slug" element={<LinkPage />} />
           <Route
             path="/admin"
             element={
