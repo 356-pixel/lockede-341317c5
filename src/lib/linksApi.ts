@@ -2,10 +2,12 @@ import {
   doc,
   getDoc,
   increment,
+  runTransaction,
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { ADMIN_CLICKADU_LINK } from "./adminConfig";
 
 const COL = "links";
 const ALPHA =
@@ -13,21 +15,19 @@ const ALPHA =
 
 export const LOCKEDE_DOMAIN = "https://lockede.com";
 
-/** Clickadu direct-link ad slots used to fill the non-destination buttons. */
-export const CLICKADU_LINKS = [
-  "https://clickadu.com/ad/1",
-  "https://clickadu.com/ad/2",
-  "https://clickadu.com/ad/3",
-  "https://clickadu.com/ad/4",
-];
+export { ADMIN_CLICKADU_LINK };
 
 export type LockedeLink = {
   slug: string;
   destinationUrl: string;
   buttonPosition: number; // 1..5
-  clickaduLinks: string[]; // 4 entries used in the other slots
+  clickaduLink: string; // user-supplied Clickadu direct link
+  trackingId: string; // user-supplied tracking ID for this slug
   createdAt: string;
-  clicks?: number;
+  clicks?: number; // destination clicks
+  clickaduClicks?: number; // clicks on any non-destination button (drives rotation)
+  trackingClicks?: number; // clicks routed to user's Clickadu (i.e. tracking ID hits)
+  adminClickaduClicks?: number; // clicks routed to admin Clickadu link
 };
 
 export function generateSlug(len = 5): string {
@@ -50,11 +50,17 @@ export async function generateUniqueLinkSlug(
 }
 
 export async function createLockedeLink(
-  data: Omit<LockedeLink, "clicks">,
+  data: Omit<
+    LockedeLink,
+    "clicks" | "clickaduClicks" | "trackingClicks" | "adminClickaduClicks"
+  >,
 ): Promise<void> {
   await setDoc(doc(db, COL, data.slug), {
     ...data,
     clicks: 0,
+    clickaduClicks: 0,
+    trackingClicks: 0,
+    adminClickaduClicks: 0,
     _ts: serverTimestamp(),
   });
 }
@@ -76,5 +82,39 @@ export async function incrementLinkClicks(slug: string): Promise<void> {
     );
   } catch (e) {
     console.warn("link clicks:", e);
+  }
+}
+
+/**
+ * Register a click on a non-destination (Clickadu) button. Uses a transaction
+ * to atomically increment the per-slug counter and decide which URL this
+ * particular click should route to:
+ *   - odd click (1st, 3rd, 5th…) → user's Clickadu Direct Link (tracking hit)
+ *   - even click (2nd, 4th, 6th…) → admin Clickadu link
+ */
+export async function registerClickaduClick(
+  slug: string,
+): Promise<{ url: string; isAdmin: boolean }> {
+  const ref = doc(db, COL, slug);
+  try {
+    return await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error("Link not found");
+      const data = snap.data() as LockedeLink;
+      const nextCount = (data.clickaduClicks ?? 0) + 1;
+      const isAdmin = nextCount % 2 === 0;
+      const url = isAdmin
+        ? ADMIN_CLICKADU_LINK
+        : data.clickaduLink || ADMIN_CLICKADU_LINK;
+      tx.update(ref, {
+        clickaduClicks: nextCount,
+        trackingClicks: (data.trackingClicks ?? 0) + (isAdmin ? 0 : 1),
+        adminClickaduClicks: (data.adminClickaduClicks ?? 0) + (isAdmin ? 1 : 0),
+      });
+      return { url, isAdmin };
+    });
+  } catch (e) {
+    console.warn("clickadu click:", e);
+    return { url: ADMIN_CLICKADU_LINK, isAdmin: true };
   }
 }

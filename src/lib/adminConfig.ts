@@ -5,6 +5,11 @@
 export const SHAREABLE_DOMAIN = "https://vindoy.com";
 export const ADMIN_PASSWORD = "vindoy2026"; // <- change me
 
+// Admin's Clickadu direct link. Every 2nd click on a non-destination button
+// on the /:slug bridge page is redirected here. Update this when you receive
+// your final Clickadu direct link URL.
+export const ADMIN_CLICKADU_LINK = "https://clickadu.com/admin-placeholder";
+
 // Admin-issued tracking IDs. Only IDs in this list are accepted by the
 // shortener and tracked in the analytics pipeline. Anything else is ignored.
 // Add new IDs here as you issue them.

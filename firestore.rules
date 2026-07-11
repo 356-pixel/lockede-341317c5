@@ -17,6 +17,9 @@ service cloud.firestore {
     match /bannerAds/{docId} {
       allow read, write: if true;
     }
+    match /links/{slug} {
+      allow read, write: if true;
+    }
     match /config/{docId} {
       allow read: if true;
       allow write: if true;
