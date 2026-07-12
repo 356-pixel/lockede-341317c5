@@ -65,8 +65,9 @@ export default function CreateLinks() {
     if (!isValidUrl(clickadu))
       return toast.error("Please enter a valid Clickadu Direct Link");
     if (!tid) return toast.error("Please select a Tracking ID");
-    if (buttonPosition < 1 || buttonPosition > 6)
-      return toast.error("Choose a button position from 1 to 6");
+    if (buttonPosition < 1 || buttonPosition > 5)
+      return toast.error("Choose a button position from 1 to 5");
+
 
     setSubmitting(true);
     try {
@@ -148,8 +149,9 @@ export default function CreateLinks() {
               <label className="mb-2 block text-sm font-medium">
                 Select button position for destination link
               </label>
-              <div className="grid grid-cols-6 gap-2">
-                {[1, 2, 3, 4, 5, 6].map((n) => {
+              <div className="grid grid-cols-5 gap-2">
+                {[1, 2, 3, 4, 5].map((n) => {
+
                   const selected = n === buttonPosition;
                   return (
                     <button

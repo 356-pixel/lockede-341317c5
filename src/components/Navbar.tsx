@@ -81,15 +81,8 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between gap-3">
-        {/* Mobile: burger extreme left */}
-        <div className="md:hidden">
-          <MobileMenu />
-        </div>
-
-        {/* Logo: left on desktop, centered on mobile */}
-        <div className="flex flex-1 justify-center md:flex-none md:justify-start">
-          <Logo />
-        </div>
+        {/* Logo: left */}
+        <Logo />
 
         {/* Desktop links */}
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
@@ -106,9 +99,15 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* Create Links: extreme right */}
-        <CreateLinksButton />
+        {/* Right side: Create Links + (mobile) burger */}
+        <div className="flex items-center gap-2">
+          <CreateLinksButton />
+          <div className="md:hidden">
+            <MobileMenu />
+          </div>
+        </div>
       </div>
     </header>
+
   );
 }
