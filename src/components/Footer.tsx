@@ -19,11 +19,10 @@ export default function Footer() {
           </div>
           <nav className="grid grid-cols-2 gap-x-10 gap-y-2 text-sm sm:grid-cols-3">
             <Link to="/" className="text-muted-foreground hover:text-foreground">Home</Link>
-            <Link to="/blogs" className="text-muted-foreground hover:text-foreground">Blogs</Link>
             <Link to="/about" className="text-muted-foreground hover:text-foreground">About us</Link>
+            <Link to="/blogs" className="text-muted-foreground hover:text-foreground">Blogs</Link>
+            <Link to="/privacy" className="text-muted-foreground hover:text-foreground">Privacy policy</Link>
             <Link to="/contact" className="text-muted-foreground hover:text-foreground">Contact us</Link>
-            <Link to="/privacy" className="text-muted-foreground hover:text-foreground">Privacy</Link>
-            <Link to="/create" className="text-muted-foreground hover:text-foreground">Create Links</Link>
           </nav>
         </div>
         <div className="mt-8 flex flex-col gap-1 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row sm:justify-between">
