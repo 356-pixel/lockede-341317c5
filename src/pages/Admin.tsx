@@ -166,6 +166,7 @@ function TrackingIdsPanel() {
   const [rows, setRows] = useState<TrackingId[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [newId, setNewId] = useState("");
   const [note, setNote] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -186,15 +187,21 @@ function TrackingIdsPanel() {
   }, []);
 
   async function handleCreate() {
+    const id = newId.trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(id)) {
+      toast.error("ID must be exactly 3 letters (A–Z).");
+      return;
+    }
     setCreating(true);
     try {
-      const t = await createTrackingId(note.trim() || undefined);
+      const t = await createTrackingIdWithId(id, note.trim() || undefined);
+      setNewId("");
       setNote("");
       toast.success(`Issued Tracking ID ${t.id}`);
       refresh();
-    } catch (e) {
+    } catch (e: unknown) {
       console.error(e);
-      toast.error("Could not issue Tracking ID");
+      toast.error(e instanceof Error ? e.message : "Could not issue Tracking ID");
     } finally {
       setCreating(false);
     }
@@ -222,14 +229,27 @@ function TrackingIdsPanel() {
       <header>
         <h1 className="text-xl font-semibold">Tracking IDs</h1>
         <p className="text-xs text-muted-foreground">
-          Issue three-letter uppercase Tracking IDs. Users pick from these when creating short links.
+          Choose a three-letter uppercase Tracking ID and a description. Users pick from these when creating short links.
         </p>
       </header>
 
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="w-full text-xs font-medium text-muted-foreground sm:w-40">
+            Tracking ID (3 letters)
+            <input
+              type="text"
+              value={newId}
+              onChange={(e) =>
+                setNewId(e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3))
+              }
+              placeholder="ABC"
+              maxLength={3}
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono uppercase tracking-widest text-foreground outline-none focus:ring-2 focus:ring-ring"
+            />
+          </label>
           <label className="flex-1 text-xs font-medium text-muted-foreground">
-            Optional note
+            Description
             <input
               type="text"
               value={note}
@@ -244,7 +264,7 @@ function TrackingIdsPanel() {
             className="inline-flex h-[38px] items-center justify-center gap-1.5 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
           >
             {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Issue new ID
+            Issue ID
           </button>
         </div>
       </div>
