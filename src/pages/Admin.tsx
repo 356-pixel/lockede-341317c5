@@ -27,7 +27,7 @@ import type { PreviewDoc } from "@/lib/articleTypes";
 import { utcDateString } from "@/lib/analytics";
 import BannerAdManager from "@/components/BannerAdManager";
 import {
-  createTrackingId,
+  createTrackingIdWithId,
   deleteTrackingId,
   listTrackingIds,
   type TrackingId,
