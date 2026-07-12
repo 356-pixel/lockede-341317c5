@@ -440,6 +440,13 @@ function AnalyticsDashboard() {
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
   const [openRow, setOpenRow] = useState<string | null>(null);
+  const [issuedTrackingIds, setIssuedTrackingIds] = useState<TrackingId[]>([]);
+
+  useEffect(() => {
+    listTrackingIds()
+      .then(setIssuedTrackingIds)
+      .catch(() => setIssuedTrackingIds([]));
+  }, []);
 
   async function handleFetch() {
     setLoading(true);
@@ -456,9 +463,10 @@ function AnalyticsDashboard() {
   }
 
   const trackingOptions = useMemo(() => {
-    const ids = data.map((p) => p.trackingId).filter((x): x is string => !!x);
-    return [...new Set(ids)].sort();
-  }, [data]);
+    const fromIssued = issuedTrackingIds.map((t) => t.id);
+    const fromData = data.map((p) => p.trackingId).filter((x): x is string => !!x);
+    return [...new Set([...fromIssued, ...fromData])].sort();
+  }, [data, issuedTrackingIds]);
 
   const dateRows: DateRow[] = useMemo(() => {
     const byDate = new Map<string, DateRow>();
