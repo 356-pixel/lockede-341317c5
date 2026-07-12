@@ -102,7 +102,8 @@ export default function LinkPage() {
             {article.instruction}
           </p>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((position) => (
+            {[1, 2, 3, 4, 5].map((position) => (
+
               <button
                 key={position}
                 onClick={() => handleClick(position)}

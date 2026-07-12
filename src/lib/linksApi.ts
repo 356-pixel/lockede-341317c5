@@ -20,7 +20,7 @@ export { ADMIN_CLICKADU_LINK };
 export type LockedeLink = {
   slug: string;
   destinationUrl: string;
-  buttonPosition: number; // 1..6
+  buttonPosition: number; // 1..5
   clickaduLink: string; // user-supplied Clickadu direct link
   trackingId: string; // admin-issued 3-letter uppercase tracking ID
   createdAt: string;
