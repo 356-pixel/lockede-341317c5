@@ -46,6 +46,27 @@ export async function createTrackingId(note?: string): Promise<TrackingId> {
   return payload;
 }
 
+export async function createTrackingIdWithId(
+  rawId: string,
+  note?: string,
+): Promise<TrackingId> {
+  const id = rawId.trim().toUpperCase();
+  if (!/^[A-Z]{3}$/.test(id)) {
+    throw new Error("Tracking ID must be exactly 3 letters (A–Z).");
+  }
+  const existing = await getDoc(doc(db, COL, id));
+  if (existing.exists()) {
+    throw new Error(`Tracking ID ${id} already exists.`);
+  }
+  const payload: TrackingId = {
+    id,
+    createdAt: new Date().toISOString(),
+    ...(note ? { note } : {}),
+  };
+  await setDoc(doc(db, COL, id), { ...payload, _ts: serverTimestamp() });
+  return payload;
+}
+
 export async function listTrackingIds(): Promise<TrackingId[]> {
   const snap = await getDocs(collection(db, COL));
   return snap.docs
