@@ -430,13 +430,6 @@ function DirectLinksPanel() {
   }
 
   async function handleSave() {
-    // Validate uniqueness of non-empty entries
-    const nonEmpty = cfg.links.map((l) => l.trim()).filter(Boolean);
-    const uniq = new Set(nonEmpty);
-    if (uniq.size !== nonEmpty.length) {
-      toast.error("Direct links must be unique — please remove duplicates.");
-      return;
-    }
     setSaving(true);
     try {
       await saveDirectLinks(cfg);
@@ -462,9 +455,9 @@ function DirectLinksPanel() {
       <header>
         <h1 className="text-xl font-semibold">Direct Links</h1>
         <p className="text-xs text-muted-foreground">
-          Up to {DIRECT_LINK_SLOTS} unique ad/direct links. These fill the
+          Up to {DIRECT_LINK_SLOTS} ad/direct links. These fill the
           buttons on every landing page after the user's destination URLs
-          (placed randomly, never repeated).
+          (placed randomly).
         </p>
       </header>
 
