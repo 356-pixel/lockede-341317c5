@@ -20,6 +20,7 @@ import {
   createLockedeLink,
   generateUniqueLinkSlug,
 } from "@/lib/linksApi";
+import { trackingIdExists } from "@/lib/trackingIdsApi";
 
 function isValidUrl(url: string): boolean {
   try {
