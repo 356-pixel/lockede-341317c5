@@ -196,8 +196,8 @@ function TrackingIdsPanel() {
 
   async function handleCreate() {
     const id = newId.trim().toUpperCase();
-    if (!/^[A-Z]{3}$/.test(id)) {
-      toast.error("ID must be exactly 3 letters (A–Z).");
+    if (!/^[A-Z0-9]{3}$/.test(id)) {
+      toast.error("ID must be exactly 3 characters (A–Z or 0–9).");
       return;
     }
     setCreating(true);
