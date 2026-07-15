@@ -63,19 +63,20 @@ export default function LinkPage() {
 
   async function handleClick(position: number) {
     if (busy) return;
-    const isDestination = position === link!.buttonPosition;
+    const dests = link!.destinationUrls ?? [];
+    const isDestination = position >= 1 && position <= dests.length;
     setBusy(true);
     try {
       if (isDestination) {
         incrementLinkClicks(slug);
         window.open(
-          normalizeUrl(link!.destinationUrl),
+          normalizeUrl(dests[position - 1]),
           "_blank",
           "noopener,noreferrer",
         );
       } else {
-        const { url } = await registerClickaduClick(slug);
-        window.open(url, "_blank", "noopener,noreferrer");
+        incrementAdminClickaduClicks(slug);
+        window.open(ADMIN_CLICKADU_LINK, "_blank", "noopener,noreferrer");
       }
     } finally {
       setBusy(false);
