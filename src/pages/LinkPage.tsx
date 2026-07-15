@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import {
   ADMIN_CLICKADU_LINK,
-  TOTAL_BUTTONS,
+  buildLandingButtons,
   getLockedeLink,
   incrementAdminClickaduClicks,
   incrementLinkClicks,
@@ -16,6 +16,7 @@ import {
   DEFAULT_LANDING_ARTICLE,
   type LandingArticle,
 } from "@/lib/landingArticleApi";
+import { getDirectLinks, activeDirectLinks } from "@/lib/directLinksApi";
 
 function normalizeUrl(url: string) {
   const t = url.trim();
@@ -27,21 +28,18 @@ export default function LinkPage() {
   const { slug = "" } = useParams();
   const navigate = useNavigate();
   const [link, setLink] = useState<LockedeLink | null | undefined>(undefined);
-  const [article, setArticle] = useState<LandingArticle>(
-    DEFAULT_LANDING_ARTICLE,
-  );
+  const [article, setArticle] = useState<LandingArticle>(DEFAULT_LANDING_ARTICLE);
+  const [directLinks, setDirectLinks] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     getLandingArticle().then((a) => !cancelled && setArticle(a));
+    getDirectLinks().then((cfg) => !cancelled && setDirectLinks(activeDirectLinks(cfg)));
     getLockedeLink(slug)
       .then((d) => {
         if (cancelled) return;
-        if (!d) {
-          navigate("/404", { replace: true });
-          return;
-        }
+        if (!d) return navigate("/404", { replace: true });
         setLink(d);
       })
       .catch(() => !cancelled && navigate("/404", { replace: true }));
@@ -61,23 +59,20 @@ export default function LinkPage() {
   }
   if (!link) return null;
 
-  async function handleClick(position: number) {
+  const buttons = buildLandingButtons(
+    slug,
+    link.destinationUrls ?? [],
+    directLinks,
+    ADMIN_CLICKADU_LINK,
+  );
+
+  async function handleClick(url: string, isDestination: boolean) {
     if (busy) return;
-    const dests = link!.destinationUrls ?? [];
-    const isDestination = position >= 1 && position <= dests.length;
     setBusy(true);
     try {
-      if (isDestination) {
-        incrementLinkClicks(slug);
-        window.open(
-          normalizeUrl(dests[position - 1]),
-          "_blank",
-          "noopener,noreferrer",
-        );
-      } else {
-        incrementAdminClickaduClicks(slug);
-        window.open(ADMIN_CLICKADU_LINK, "_blank", "noopener,noreferrer");
-      }
+      if (isDestination) incrementLinkClicks(slug);
+      else incrementAdminClickaduClicks(slug);
+      window.open(normalizeUrl(url), "_blank", "noopener,noreferrer");
     } finally {
       setBusy(false);
     }
@@ -92,30 +87,26 @@ export default function LinkPage() {
     <Layout>
       <SEO title={`${article.title} · Lockede`} description={article.firstParagraph} />
       <article className="container max-w-2xl pt-4 pb-16 sm:pt-6">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          {article.title}
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{article.title}</h1>
         <p className="mt-5 text-base leading-relaxed text-foreground/90">
           {article.firstParagraph}
         </p>
 
-        {/* Buttons box */}
-        <div className="mt-8 rounded-2xl border border-border bg-card p-5 sm:p-7">
-          <p className="text-center text-sm font-semibold text-foreground">
+        {/* Prominent buttons box */}
+        <div className="mt-8 rounded-2xl border-2 border-primary/40 bg-gradient-to-b from-primary/10 to-card p-5 shadow-lg sm:p-7">
+          <p className="text-center text-base font-bold text-foreground sm:text-lg">
             {article.instruction}
           </p>
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {Array.from({ length: TOTAL_BUTTONS }, (_, i) => i + 1).map((position) => (
-
-
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-2">
+            {buttons.map((slot, i) => (
               <button
-                key={position}
-                onClick={() => handleClick(position)}
+                key={i}
+                onClick={() => handleClick(slot.url, slot.kind === "destination")}
                 disabled={busy}
-                className="group flex items-center justify-between rounded-md border border-border bg-background px-4 py-4 text-left text-sm font-semibold text-foreground transition-colors hover:border-foreground hover:bg-secondary disabled:opacity-60"
+                className="group flex items-center justify-between rounded-lg border-2 border-primary bg-primary px-4 py-4 text-left text-base font-bold text-primary-foreground shadow-md transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 disabled:opacity-60 sm:py-5 sm:text-lg"
               >
-                <span>Link {position}</span>
-                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                <span>Link {i + 1}</span>
+                <ExternalLink className="h-5 w-5 opacity-90 group-hover:opacity-100" />
               </button>
             ))}
           </div>
@@ -124,7 +115,6 @@ export default function LinkPage() {
           </p>
         </div>
 
-        {/* Rest of the article */}
         {bodyParagraphs.length > 0 && (
           <div className="mt-10 space-y-5 text-base leading-relaxed text-foreground/90">
             {bodyParagraphs.map((p, i) => (
