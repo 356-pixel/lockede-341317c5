@@ -64,8 +64,8 @@ export default function CreateLinks() {
       if (!isValidUrl(u)) return toast.error(`Invalid URL: ${u}`);
     }
     const tid = trackingId.trim().toUpperCase();
-    if (!/^[A-Z]{3}$/.test(tid))
-      return toast.error("Tracking ID must be exactly 3 letters (A–Z)");
+    if (!/^[A-Z0-9]{3}$/.test(tid))
+      return toast.error("Tracking ID must be exactly 3 characters (A–Z or 0–9)");
 
     setSubmitting(true);
     try {
@@ -189,10 +189,10 @@ export default function CreateLinks() {
                   required
                   maxLength={3}
                   autoComplete="off"
-                  placeholder="ABC"
+                  placeholder="AB1"
                   value={trackingId}
                   onChange={(e) =>
-                    setTrackingId(e.target.value.toUpperCase().replace(/[^A-Z]/g, ""))
+                    setTrackingId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
                   }
                   className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm font-mono uppercase tracking-widest outline-none focus:ring-2 focus:ring-ring"
                 />
