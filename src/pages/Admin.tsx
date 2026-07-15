@@ -237,21 +237,21 @@ function TrackingIdsPanel() {
       <header>
         <h1 className="text-xl font-semibold">Tracking IDs</h1>
         <p className="text-xs text-muted-foreground">
-          Choose a three-letter uppercase Tracking ID and a description. Users pick from these when creating short links.
+          Choose a 3-character Tracking ID (letters A–Z or digits 0–9) and a description. Users enter these when creating short links.
         </p>
       </header>
 
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="w-full text-xs font-medium text-muted-foreground sm:w-40">
-            Tracking ID (3 letters)
+            Tracking ID (3 chars)
             <input
               type="text"
               value={newId}
               onChange={(e) =>
-                setNewId(e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3))
+                setNewId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3))
               }
-              placeholder="ABC"
+              placeholder="AB1"
               maxLength={3}
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono uppercase tracking-widest text-foreground outline-none focus:ring-2 focus:ring-ring"
             />
