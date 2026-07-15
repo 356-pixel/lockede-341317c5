@@ -3,7 +3,7 @@ import { db } from "./firebase";
 
 const DOC_PATH = ["config", "directLinks"] as const;
 
-export const DIRECT_LINK_SLOTS = 5;
+export const DIRECT_LINK_SLOTS = 4;
 
 export type DirectLinksConfig = {
   links: string[]; // up to 5, may contain empty strings for empty slots
