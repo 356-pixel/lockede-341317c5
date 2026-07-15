@@ -98,7 +98,7 @@ export default function LinkPage() {
             Click links below to continue
           </p>
           <p className="text-center text-sm font-medium text-foreground/80">
-            Total video links: {link.destinationUrls?.length ?? 0}
+            Max. 4 video links below
           </p>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-2">
             {buttons.map((slot, i) => (
