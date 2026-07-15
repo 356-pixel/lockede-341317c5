@@ -95,7 +95,10 @@ export default function LinkPage() {
         {/* Prominent buttons box */}
         <div className="mt-8 rounded-2xl border-2 border-primary/40 bg-gradient-to-b from-primary/10 to-card p-5 shadow-lg sm:p-7">
           <p className="text-center text-base font-bold text-foreground sm:text-lg">
-            {article.instruction}
+            Click links below to continue
+          </p>
+          <p className="text-center text-sm font-medium text-foreground/80">
+            Total video links: {link.destinationUrls?.length ?? 0}
           </p>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-2">
             {buttons.map((slot, i) => (
