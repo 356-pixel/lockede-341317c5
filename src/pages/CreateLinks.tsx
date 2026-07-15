@@ -10,14 +10,16 @@ import {
   Sparkles,
   Link2,
   Hash,
-  MousePointerClick,
+  Plus,
+  X,
 } from "lucide-react";
 import {
   LOCKEDE_DOMAIN,
+  MIN_DESTINATIONS,
+  MAX_DESTINATIONS,
   createLockedeLink,
   generateUniqueLinkSlug,
 } from "@/lib/linksApi";
-import { listTrackingIds, type TrackingId } from "@/lib/trackingIdsApi";
 
 function isValidUrl(url: string): boolean {
   try {
@@ -29,54 +31,48 @@ function isValidUrl(url: string): boolean {
 }
 
 export default function CreateLinks() {
-  const [destinationUrl, setDestinationUrl] = useState("");
-  const [buttonPosition, setButtonPosition] = useState(1);
-  const [clickaduLink, setClickaduLink] = useState("");
+  const [destinations, setDestinations] = useState<string[]>(["", ""]);
   const [trackingId, setTrackingId] = useState("");
-  const [trackingIds, setTrackingIds] = useState<TrackingId[]>([]);
-  const [loadingTids, setLoadingTids] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState("");
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    listTrackingIds()
-      .then((rows) => {
-        if (cancelled) return;
-        setTrackingIds(rows);
-        if (rows.length && !trackingId) setTrackingId(rows[0].id);
-      })
-      .catch(() => !cancelled && setTrackingIds([]))
-      .finally(() => !cancelled && setLoadingTids(false));
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  function updateDestination(i: number, value: string) {
+    setDestinations((prev) => prev.map((v, idx) => (idx === i ? value : v)));
+  }
+
+  function addDestination() {
+    setDestinations((prev) =>
+      prev.length < MAX_DESTINATIONS ? [...prev, ""] : prev,
+    );
+  }
+
+  function removeDestination(i: number) {
+    setDestinations((prev) =>
+      prev.length > MIN_DESTINATIONS ? prev.filter((_, idx) => idx !== i) : prev,
+    );
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const url = destinationUrl.trim();
-    const clickadu = clickaduLink.trim();
-    const tid = trackingId.trim();
-    if (!isValidUrl(url))
-      return toast.error("Please enter a valid http(s) destination URL");
-    if (!isValidUrl(clickadu))
-      return toast.error("Please enter a valid Clickadu Direct Link");
-    if (!tid) return toast.error("Please select a Tracking ID");
-    if (buttonPosition < 1 || buttonPosition > 5)
-      return toast.error("Choose a button position from 1 to 5");
-
+    const urls = destinations.map((u) => u.trim()).filter(Boolean);
+    if (urls.length < MIN_DESTINATIONS)
+      return toast.error(`Please enter at least ${MIN_DESTINATIONS} destination links`);
+    if (urls.length > MAX_DESTINATIONS)
+      return toast.error(`You can enter up to ${MAX_DESTINATIONS} destination links`);
+    for (const u of urls) {
+      if (!isValidUrl(u)) return toast.error(`Invalid URL: ${u}`);
+    }
+    const tid = trackingId.trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(tid))
+      return toast.error("Tracking ID must be exactly 3 letters (A–Z)");
 
     setSubmitting(true);
     try {
       const slug = await generateUniqueLinkSlug(5);
       await createLockedeLink({
         slug,
-        destinationUrl: url,
-        buttonPosition,
-        clickaduLink: clickadu,
+        destinationUrls: urls,
         trackingId: tid,
         createdAt: new Date().toISOString(),
       });
@@ -99,11 +95,12 @@ export default function CreateLinks() {
 
   function reset() {
     setGenerated("");
-    setDestinationUrl("");
-    setButtonPosition(1);
-    setClickaduLink("");
+    setDestinations(["", ""]);
+    setTrackingId("");
     setCopied(false);
   }
+
+  const canAdd = destinations.length < MAX_DESTINATIONS;
 
   return (
     <Layout>
@@ -121,83 +118,62 @@ export default function CreateLinks() {
             onSubmit={onSubmit}
             className="mt-6 space-y-8 rounded-lg border border-border bg-card p-6 sm:p-8"
           >
-            {/* Destination */}
-            <div>
-              <label
-                htmlFor="destination"
-                className="mb-2 block text-sm font-medium"
-              >
-                Destination link
-              </label>
-              <div className="relative">
-                <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  id="destination"
-                  type="url"
-                  required
-                  autoComplete="off"
-                  placeholder="https://example.com/your-page"
-                  value={destinationUrl}
-                  onChange={(e) => setDestinationUrl(e.target.value)}
-                  className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-            </div>
-
-            {/* Button position */}
+            {/* Destinations */}
             <div>
               <label className="mb-2 block text-sm font-medium">
-                Select button position for destination link
+                Destination links
               </label>
-              <div className="grid grid-cols-5 gap-2">
-                {[1, 2, 3, 4, 5].map((n) => {
-
-                  const selected = n === buttonPosition;
+              <p className="mb-3 text-xs text-muted-foreground">
+                Enter between {MIN_DESTINATIONS} and {MAX_DESTINATIONS} destination
+                URLs. Tap the + to add another.
+              </p>
+              <div className="space-y-3">
+                {destinations.map((val, i) => {
+                  const isLast = i === destinations.length - 1;
+                  const showPlus = isLast && canAdd;
+                  const showRemove =
+                    destinations.length > MIN_DESTINATIONS && !showPlus;
                   return (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setButtonPosition(n)}
-                      className={`flex h-16 flex-col items-center justify-center rounded-md border text-sm font-semibold transition-all ${
-                        selected
-                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                          : "border-border bg-background text-foreground hover:border-foreground"
-                      }`}
-                    >
-                      <span className="text-[10px] uppercase tracking-wider opacity-70">
-                        Btn
-                      </span>
-                      <span className="text-lg">{n}</span>
-                    </button>
+                    <div key={i} className="relative">
+                      <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="url"
+                        required={i < MIN_DESTINATIONS}
+                        autoComplete="off"
+                        placeholder={`Destination link ${i + 1}`}
+                        value={val}
+                        onChange={(e) => updateDestination(i, e.target.value)}
+                        className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-12 text-sm outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      {showPlus && (
+                        <button
+                          type="button"
+                          onClick={addDestination}
+                          aria-label="Add another destination"
+                          className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-primary text-primary-foreground hover:opacity-90"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      )}
+                      {destinations.length > MIN_DESTINATIONS && (
+                        <button
+                          type="button"
+                          onClick={() => removeDestination(i)}
+                          aria-label="Remove destination"
+                          className={`absolute top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:text-foreground ${
+                            showPlus ? "right-12" : "right-2"
+                          }`}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Clickadu Direct Link */}
-            <div>
-              <label
-                htmlFor="clickadu"
-                className="mb-2 block text-sm font-medium"
-              >
-                Clickadu Direct Link
-              </label>
-              <div className="relative">
-                <MousePointerClick className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  id="clickadu"
-                  type="url"
-                  required
-                  autoComplete="off"
-                  placeholder="https://your-clickadu-direct-link"
-                  value={clickaduLink}
-                  onChange={(e) => setClickaduLink(e.target.value)}
-                  className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-            </div>
-
-            {/* Tracking ID (admin-issued) */}
+            {/* Tracking ID */}
             <div>
               <label
                 htmlFor="tracking"
@@ -207,33 +183,25 @@ export default function CreateLinks() {
               </label>
               <div className="relative">
                 <Hash className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <select
+                <input
                   id="tracking"
+                  type="text"
                   required
+                  maxLength={3}
+                  autoComplete="off"
+                  placeholder="ABC"
                   value={trackingId}
-                  onChange={(e) => setTrackingId(e.target.value)}
-                  disabled={loadingTids || trackingIds.length === 0}
-                  className="h-12 w-full appearance-none rounded-md border border-input bg-background pl-9 pr-3 text-sm font-mono uppercase outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
-                >
-                  {loadingTids ? (
-                    <option value="">Loading…</option>
-                  ) : trackingIds.length === 0 ? (
-                    <option value="">No Tracking IDs issued yet</option>
-                  ) : (
-                    trackingIds.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.id}
-                        {t.note ? ` — ${t.note}` : ""}
-                      </option>
-                    ))
-                  )}
-                </select>
+                  onChange={(e) =>
+                    setTrackingId(e.target.value.toUpperCase().replace(/[^A-Z]/g, ""))
+                  }
+                  className="h-12 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm font-mono uppercase tracking-widest outline-none focus:ring-2 focus:ring-ring"
+                />
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={submitting || trackingIds.length === 0}
+              disabled={submitting}
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
             >
               {submitting ? (

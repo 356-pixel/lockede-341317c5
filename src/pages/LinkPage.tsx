@@ -4,9 +4,11 @@ import { ExternalLink, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import {
+  ADMIN_CLICKADU_LINK,
+  TOTAL_BUTTONS,
   getLockedeLink,
+  incrementAdminClickaduClicks,
   incrementLinkClicks,
-  registerClickaduClick,
   type LockedeLink,
 } from "@/lib/linksApi";
 import {
@@ -61,19 +63,20 @@ export default function LinkPage() {
 
   async function handleClick(position: number) {
     if (busy) return;
-    const isDestination = position === link!.buttonPosition;
+    const dests = link!.destinationUrls ?? [];
+    const isDestination = position >= 1 && position <= dests.length;
     setBusy(true);
     try {
       if (isDestination) {
         incrementLinkClicks(slug);
         window.open(
-          normalizeUrl(link!.destinationUrl),
+          normalizeUrl(dests[position - 1]),
           "_blank",
           "noopener,noreferrer",
         );
       } else {
-        const { url } = await registerClickaduClick(slug);
-        window.open(url, "_blank", "noopener,noreferrer");
+        incrementAdminClickaduClicks(slug);
+        window.open(ADMIN_CLICKADU_LINK, "_blank", "noopener,noreferrer");
       }
     } finally {
       setBusy(false);
@@ -102,7 +105,8 @@ export default function LinkPage() {
             {article.instruction}
           </p>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {[1, 2, 3, 4, 5].map((position) => (
+            {Array.from({ length: TOTAL_BUTTONS }, (_, i) => i + 1).map((position) => (
+
 
               <button
                 key={position}
