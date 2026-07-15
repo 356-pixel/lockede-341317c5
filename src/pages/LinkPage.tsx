@@ -48,6 +48,17 @@ export default function LinkPage() {
     };
   }, [slug, navigate]);
 
+  useEffect(() => {
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = "https://js.wpadmngr.com/static/adManager.js";
+    s.setAttribute("data-admpid", "448176");
+    document.body.appendChild(s);
+    return () => {
+      s.remove();
+    };
+  }, []);
+
   if (link === undefined) {
     return (
       <Layout>
