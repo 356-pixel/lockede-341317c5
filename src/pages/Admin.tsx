@@ -455,9 +455,9 @@ function DirectLinksPanel() {
       <header>
         <h1 className="text-xl font-semibold">Direct Links</h1>
         <p className="text-xs text-muted-foreground">
-          Up to {DIRECT_LINK_SLOTS} unique ad/direct links. These fill the
+          Up to {DIRECT_LINK_SLOTS} ad/direct links. These fill the
           buttons on every landing page after the user's destination URLs
-          (placed randomly, never repeated).
+          (placed randomly).
         </p>
       </header>
 
