@@ -70,6 +70,12 @@ export default function CreateLinks() {
 
     setSubmitting(true);
     try {
+      const exists = await trackingIdExists(tid);
+      if (!exists) {
+        toast.error("ID not issued");
+        setSubmitting(false);
+        return;
+      }
       const slug = await generateUniqueLinkSlug(5);
       await createLockedeLink({
         slug,
