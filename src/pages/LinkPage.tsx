@@ -4,9 +4,11 @@ import { ExternalLink, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import {
+  ADMIN_CLICKADU_LINK,
+  TOTAL_BUTTONS,
   getLockedeLink,
+  incrementAdminClickaduClicks,
   incrementLinkClicks,
-  registerClickaduClick,
   type LockedeLink,
 } from "@/lib/linksApi";
 import {
