@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import {
   ChevronDown,
@@ -19,11 +18,11 @@ import {
   Save,
   Copy,
   Check,
+  Link2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ADMIN_PASSWORD, SHAREABLE_DOMAIN } from "@/lib/adminConfig";
-import { listPreviews } from "@/lib/previewsApi";
-import type { PreviewDoc } from "@/lib/articleTypes";
+import { listLockedeLinks, type LockedeLink } from "@/lib/linksApi";
 import { utcDateString } from "@/lib/analytics";
 import BannerAdManager from "@/components/BannerAdManager";
 import {
@@ -38,11 +37,18 @@ import {
   saveLandingArticle,
   type LandingArticle,
 } from "@/lib/landingArticleApi";
+import {
+  DIRECT_LINK_SLOTS,
+  EMPTY_DIRECT_LINKS,
+  getDirectLinks,
+  saveDirectLinks,
+  type DirectLinksConfig,
+} from "@/lib/directLinksApi";
 
 const SESSION_KEY = "lockede_admin_auth";
 const MIN_CLICKS_OPTIONS = [100, 150, 200] as const;
 
-type TabId = "analytics" | "tracking" | "article" | "banner";
+type TabId = "analytics" | "tracking" | "direct" | "article" | "banner";
 
 export default function Admin() {
   const [authed, setAuthed] = useState<boolean>(() => {
