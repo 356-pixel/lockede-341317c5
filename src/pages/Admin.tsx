@@ -61,7 +61,7 @@ export default function Admin() {
   const [tab, setTab] = useState<TabId>("analytics");
 
   return (
-    <Layout>
+    <div className="min-h-screen bg-background text-foreground">
       <SEO title="Admin · Lockede" />
       <div className="container max-w-6xl py-8">
         {authed ? (
@@ -70,6 +70,7 @@ export default function Admin() {
               {[
                 { id: "analytics" as const, label: "Analytics", icon: BarChart3 },
                 { id: "tracking" as const, label: "Tracking IDs", icon: Hash },
+                { id: "direct" as const, label: "Direct Links", icon: Link2 },
                 { id: "article" as const, label: "Landing Article", icon: FileText },
                 { id: "banner" as const, label: "Banner Ads", icon: ImagePlus },
               ].map(({ id, label, icon: Icon }) => {
@@ -105,6 +106,7 @@ export default function Admin() {
             </nav>
             {tab === "analytics" && <AnalyticsDashboard />}
             {tab === "tracking" && <TrackingIdsPanel />}
+            {tab === "direct" && <DirectLinksPanel />}
             {tab === "article" && <ArticleEditorPanel />}
             {tab === "banner" && <BannerAdManager />}
           </>
@@ -121,7 +123,7 @@ export default function Admin() {
           />
         )}
       </div>
-    </Layout>
+    </div>
   );
 }
 
