@@ -165,13 +165,11 @@ export function buildLandingButtons(
   const total = totalButtonsForDestinations(dests.length);
   const need = Math.max(0, total - dests.length);
 
-  // Unique direct links only, up to what's needed
-  const seen = new Set<string>();
+  // Take direct links per slot (duplicates allowed), up to what's needed
   const uniqueDirects: string[] = [];
   for (const d of directLinks) {
     const v = (d || "").trim();
-    if (!v || seen.has(v)) continue;
-    seen.add(v);
+    if (!v) continue;
     uniqueDirects.push(v);
     if (uniqueDirects.length >= need) break;
   }

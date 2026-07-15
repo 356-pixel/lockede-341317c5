@@ -37,15 +37,12 @@ export async function saveDirectLinks(cfg: DirectLinksConfig): Promise<void> {
   );
 }
 
-/** Return only unique, non-empty direct links, preserving order. */
+/** Return non-empty direct links per slot, preserving order. Duplicates allowed. */
 export function activeDirectLinks(cfg: DirectLinksConfig): string[] {
-  const seen = new Set<string>();
   const out: string[] = [];
   for (const l of cfg.links) {
     const v = (l || "").trim();
     if (!v) continue;
-    if (seen.has(v)) continue;
-    seen.add(v);
     out.push(v);
   }
   return out;
