@@ -430,13 +430,6 @@ function DirectLinksPanel() {
   }
 
   async function handleSave() {
-    // Validate uniqueness of non-empty entries
-    const nonEmpty = cfg.links.map((l) => l.trim()).filter(Boolean);
-    const uniq = new Set(nonEmpty);
-    if (uniq.size !== nonEmpty.length) {
-      toast.error("Direct links must be unique — please remove duplicates.");
-      return;
-    }
     setSaving(true);
     try {
       await saveDirectLinks(cfg);
