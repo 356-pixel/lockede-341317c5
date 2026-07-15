@@ -389,16 +389,6 @@ function ArticleEditorPanel() {
         </label>
 
         <label className="block text-xs font-medium text-muted-foreground">
-          Button instruction (short)
-          <input
-            type="text"
-            value={art.instruction}
-            onChange={(e) => setArt({ ...art, instruction: e.target.value })}
-            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
-          />
-        </label>
-
-        <label className="block text-xs font-medium text-muted-foreground">
           Rest of the article (blank line = new paragraph)
           <textarea
             rows={10}
