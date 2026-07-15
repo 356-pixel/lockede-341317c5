@@ -10,17 +10,18 @@ import {
 import { db } from "./firebase";
 
 const COL = "trackingIds";
-const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const ID_RE = /^[A-Z0-9]{3}$/;
 
 export type TrackingId = {
-  id: string; // 3-letter uppercase
+  id: string; // 3-char uppercase alphanumeric
   createdAt: string;
   note?: string;
 };
 
 export function randomTrackingId(): string {
   let s = "";
-  for (let i = 0; i < 3; i++) s += LETTERS[Math.floor(Math.random() * 26)];
+  for (let i = 0; i < 3; i++) s += CHARS[Math.floor(Math.random() * CHARS.length)];
   return s;
 }
 
@@ -51,8 +52,8 @@ export async function createTrackingIdWithId(
   note?: string,
 ): Promise<TrackingId> {
   const id = rawId.trim().toUpperCase();
-  if (!/^[A-Z]{3}$/.test(id)) {
-    throw new Error("Tracking ID must be exactly 3 letters (A–Z).");
+  if (!ID_RE.test(id)) {
+    throw new Error("Tracking ID must be exactly 3 characters (A–Z or 0–9).");
   }
   const existing = await getDoc(doc(db, COL, id));
   if (existing.exists()) {

@@ -1,7 +1,11 @@
 import {
+  collection,
   doc,
   getDoc,
+  getDocs,
   increment,
+  orderBy,
+  query,
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
@@ -15,7 +19,11 @@ const ALPHA =
 export const LOCKEDE_DOMAIN = "https://lockede.com";
 export const MIN_DESTINATIONS = 2;
 export const MAX_DESTINATIONS = 4;
-export const TOTAL_BUTTONS = 5;
+
+/** Number of buttons shown on the landing page, given destination count. */
+export function totalButtonsForDestinations(destCount: number): number {
+  return destCount <= 2 ? 6 : 8;
+}
 
 export { ADMIN_CLICKADU_LINK };
 
