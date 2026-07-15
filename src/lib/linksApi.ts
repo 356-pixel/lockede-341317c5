@@ -21,8 +21,9 @@ export const MIN_DESTINATIONS = 2;
 export const MAX_DESTINATIONS = 4;
 
 /** Number of buttons shown on the landing page, given destination count. */
-export function totalButtonsForDestinations(destCount: number): number {
-  return destCount <= 2 ? 6 : 8;
+export const TOTAL_LANDING_BUTTONS = 6;
+export function totalButtonsForDestinations(_destCount: number): number {
+  return TOTAL_LANDING_BUTTONS;
 }
 
 export { ADMIN_CLICKADU_LINK };
